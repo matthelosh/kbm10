@@ -1,0 +1,49 @@
+--- BEGIN UPLOAD DEBUG ---
+Array
+(
+    [excel_file] => Array
+        (
+            [name] => template_jadwal_fleksibel_20250606_150211.xlsx
+            [full_path] => template_jadwal_fleksibel_20250606_150211.xlsx
+            [type] => application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            [tmp_name] => C:\xampp\tmp\php8AEC.tmp
+            [error] => 0
+            [size] => 8668
+        )
+
+)
+
+Final response:
+{"success":false,"message":"Unknown column 'th_masuk' in 'field list'"}--- BEGIN UPLOAD DEBUG ---
+Array
+(
+    [excel_file] => Array
+        (
+            [name] => template_jadwal_fleksibel_20250606_150211.xlsx
+            [full_path] => template_jadwal_fleksibel_20250606_150211.xlsx
+            [type] => application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            [tmp_name] => C:\xampp\tmp\phpAFAB.tmp
+            [error] => 0
+            [size] => 8668
+        )
+
+)
+
+Final response:
+{"success":false,"message":"Unknown column 'th_masuk' in 'field list'"}--- BEGIN UPLOAD DEBUG ---
+Array
+(
+    [excel_file] => Array
+        (
+            [name] => template_jadwal_fleksibel_20250606_150211.xlsx
+            [full_path] => template_jadwal_fleksibel_20250606_150211.xlsx
+            [type] => application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+            [tmp_name] => C:\xampp\tmp\phpE7E9.tmp
+            [error] => 0
+            [size] => 8668
+        )
+
+)
+
+Final response:
+{"success":true,"message":"Import selesai. Berhasil: 1 | Gagal: 0"}
