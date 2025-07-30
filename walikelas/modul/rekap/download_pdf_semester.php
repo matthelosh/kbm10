@@ -76,7 +76,7 @@ $endDate = strtolower($infoSemester['semester']) === 'ganjil'
     ? "$tahunAwal-12-31" : "$tahunAkhir-06-30";
 
 // ✅ Logo base64
-$logo_path = $_SERVER['DOCUMENT_ROOT'] . '/kbm/assets/img/image.png';
+$logo_path = $_SERVER['DOCUMENT_ROOT'] . '/assets/img/image.png';
 $logo_data = file_exists($logo_path) ? base64_encode(file_get_contents($logo_path)) : '';
 
 $options = new Options();
@@ -119,8 +119,6 @@ $html = '
 <table class="info">
     <tr><td><b>Kelas</b></td><td>: '.$d['nama_kelas'].'</td></tr>
     <tr><td><b>Tahun Ajaran</b></td><td>: '.$infoSemester['tahun_ajaran'].'</td></tr>
-    <tr><td><b>Guru Mapel</b></td><td>: '.$d['nama_guru'].'</td></tr>
-    <tr><td><b>Mapel</b></td><td>: '.$d['mapel'].'</td></tr>
     <tr><td><b>Wali Kelas</b></td><td>: '.$walas['nama_guru'].'</td></tr>
 </table>
 
@@ -181,8 +179,8 @@ $html .= '</tbody></table>
     </td>
     <td width="50%" style="text-align:right;">
         <p>Malang, ' . tgl_indo(date('Y-m-d')) . '</p>
-        <p>Guru Pengampu</p><br><br><br>
-        <p><u>' . $d['nama_guru'] . '</u><br>NIP. ' . $nip_guru . '</p>
+        <p>Wali Kelas</p><br><br><br>
+        <p><u>' . $walas['nama_guru'] . '</u><br>NIP. ' . $walas['nip'] . '</p>
     </td>
 </tr>
 </table>';

@@ -1,7 +1,7 @@
 <?php
 
 if (session_status() === PHP_SESSION_NONE) session_start();
-require_once '../config/db.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config/db.php';
 
 if (!isset($_SESSION['guru'])) {
     echo "<script>alert('Maaf! Anda belum login!'); window.location='../user.php';</script>";
@@ -16,21 +16,34 @@ $data = $stmt->get_result()->fetch_assoc();
 
 $stmt2 = $con->prepare("
     SELECT 
-        MIN(m.id_mengajar) as id_mengajar, 
-        m.id_mkelas, 
-        m.id_mapel, 
-        k.nama_kelas, 
-        mp.mapel AS nama_mapel
+        MIN(m.id_mengajar) AS id_mengajar, MIN(m.id_mkelas) AS id_mkelas, MIN(m.id_mapel) AS id_mapel, MIN(k.nama_kelas) AS nama_kelas, MIN(mp.mapel) AS nama_mapel
     FROM tb_mengajar m
     INNER JOIN tb_mkelas k ON m.id_mkelas = k.id_mkelas
     INNER JOIN tb_master_mapel mp ON m.id_mapel = mp.id_mapel
     INNER JOIN tb_thajaran t ON m.id_thajaran = t.id_thajaran
     WHERE m.id_guru = ? AND t.status = 1
-    GROUP BY m.id_mkelas, m.id_mapel, k.nama_kelas, mp.mapel
+    GROUP BY m.id_mkelas, m.id_mapel
 ");
 $stmt2->bind_param("s", $id_login);
 $stmt2->execute();
 $kelas_guru = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
+
+if (isset($_GET['act'] ) && $_GET['act'] === 'hapus') {
+    $id_mengajar = $_GET['id_mengajar'];   
+    // Hapus logabsensi dulu
+    $stmt_log_absensi = $con->prepare("DELETE FROM _logabsensi WHERE id_mengajar = ?");
+    $stmt_log_absensi->bind_param("s", $id_mengajar);
+    $stmt_log_absensi->execute();
+    $stmt_log_absensi->close();
+    // Hapus mengajar
+
+    $stmt = $con->prepare("DELETE FROM tb_mengajar WHERE id_mengajar = ?");
+    $stmt->bind_param("s", $id_mengajar);
+    $stmt->execute();
+    $stmt->close();
+    header("Location: ?page=jadwal");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>

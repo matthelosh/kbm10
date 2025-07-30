@@ -8,6 +8,9 @@ session_start();
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Presensi Siswa</title>
     <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="../assets/img/vsc.png" />
+    <!--===============================================================================================-->
     <link rel="icon" href="assets/img/icon.ico" type="image/x-icon" />
 
     <!-- Fonts and icons -->
@@ -46,7 +49,7 @@ session_start();
                 <div class="logo-header" data-background-color="blue2">
 
                     <a href="index.php">
-                        <img src="assets/img/mts.png" alt="navbar brand" class="navbar-brand" width="40">
+                        <img src="assets/img/jatim.png" alt="navbar brand" class="navbar-brand" width="40">
                         <b class="text-white">Presensi Siswa</b>
                     </a>
                 </div>
@@ -60,8 +63,8 @@ session_start();
                         <div class="page-inner py-5">
                             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row">
                                 <div>
-                                    <h2 class="text-white pb-2 fw-bold">VOCSTEN MALANG</h2>
-                                    <h5 class="text-white op-7 mb-2">Aplikasi Jurnal Guru dan Absensi Siswa SMK Negeri 10 Malang Berbasis Web</h5>
+                                    <h2 class="text-white pb-2 fw-bold">SMK NEGERI 10 MALANG</h2>
+                                    <h5 class="text-white op-7 mb-2">Aplikasi Jurnal Guru dan Absensi Siswa Berbasis Web</h5>
                                 </div>
 
                             </div>

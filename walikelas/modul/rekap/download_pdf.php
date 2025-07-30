@@ -3,6 +3,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+ob_start(); // ✅ Bersihkan output buffer di awal
+
 require_once '../../../vendor/autoload.php';
 include "../../../config/db.php";
 
@@ -20,168 +22,166 @@ function tgl_indo($tanggal) {
     return "$tgl $bln $thn";
 }
 
-// Ambil parameter
-$pelajaran = intval($_GET['pelajaran'] ?? 0);
-$kelas = intval($_GET['kelas'] ?? 0);
-$bulanParam = $_GET['bulan'] ?? date('Y-m');
-if (!preg_match('/^\d{4}-\d{2}$/', $bulanParam)) die("Format bulan salah.");
-
-list($tahun, $bulan) = explode('-', $bulanParam);
-$tglBulan = "$tahun-$bulan-01";
-$tglTerakhir = date('t', strtotime($tglBulan));
-
-// Ambil data mengajar
-$sql = "SELECT m.*, g.nama_guru, g.nip as nip_guru, k.nama_kelas, s.semester, t.tahun_ajaran, mp.mapel
-        FROM tb_mengajar m
-        JOIN tb_guru g ON m.id_guru = g.id_guru
-        JOIN tb_mkelas k ON m.id_mkelas = k.id_mkelas
-        JOIN tb_semester s ON m.id_semester = s.id_semester
-        JOIN tb_thajaran t ON m.id_thajaran = t.id_thajaran
-        JOIN tb_master_mapel mp ON m.id_mapel = mp.id_mapel
-        WHERE m.id_mengajar = $pelajaran AND m.id_mkelas = $kelas AND s.status=1 AND t.status=1";
-$d = mysqli_fetch_assoc(mysqli_query($con, $sql));
-if (!$d) die("Data mengajar tidak ditemukan.");
-
-// Ambil wali kelas dan kepsek
-$walas = mysqli_fetch_assoc(mysqli_query($con, "SELECT g.nama_guru FROM tb_walikelas w JOIN tb_guru g ON w.id_guru = g.id_guru WHERE w.id_mkelas = $kelas"));
-$kepsek = mysqli_fetch_assoc(mysqli_query($con, "SELECT nama_kepsek, nip FROM tb_kepsek WHERE status = 'Y' LIMIT 1"));
-$nama_kepsek = $kepsek['nama_kepsek'] ?? 'Kepala Sekolah';
-$nip_kepsek = $kepsek['nip'] ?? '-';
-
-// Logo base64
-$logoPath = '../..//assets/img/jatim.png';
-$logoBase64 = '';
-if (file_exists($logoPath)) {
-    $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-    $data = file_get_contents($logoPath);
-    $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+function nama_bulan($bulan) {
+    $bulanIndo = [
+        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return $bulanIndo[intval($bulan)] ?? 'Bulan Tidak Valid';
 }
 
-// Start buffering HTML
-ob_start();
-?>
+$pelajaran = intval($_GET['pelajaran']);
+$kelas = intval($_GET['kelas']);
+$bulan = intval($_GET['bulan']);
+
+// Ambil data mengajar
+$d = mysqli_fetch_array(mysqli_query($con, "SELECT * FROM tb_mengajar 
+    JOIN tb_guru ON tb_mengajar.id_guru=tb_guru.id_guru
+    JOIN tb_master_mapel ON tb_mengajar.id_mapel=tb_master_mapel.id_mapel
+    JOIN tb_mkelas ON tb_mengajar.id_mkelas=tb_mkelas.id_mkelas
+    JOIN tb_semester ON tb_mengajar.id_semester=tb_semester.id_semester
+    JOIN tb_thajaran ON tb_mengajar.id_thajaran=tb_thajaran.id_thajaran
+    WHERE tb_mengajar.id_mengajar='$pelajaran' 
+    AND tb_mengajar.id_mkelas='$kelas' 
+    AND tb_thajaran.status=1 AND tb_semester.status=1"));
+
+// Ambil wali kelas
+$walas = mysqli_fetch_array(mysqli_query($con, "SELECT * FROM tb_walikelas 
+    JOIN tb_guru ON tb_walikelas.id_guru=tb_guru.id_guru 
+    WHERE tb_walikelas.id_mkelas='$kelas'"));
+
+// Ambil semua Kepala Sekolah aktif
+$qKepsek = mysqli_query($con, "SELECT nama_kepsek, nip FROM tb_kepsek WHERE status='Y' ORDER BY id_kepsek ASC");
+$tanda_tangan_kepsek = '';
+if (mysqli_num_rows($qKepsek) > 0) {
+    while ($k = mysqli_fetch_array($qKepsek)) {
+        $tanda_tangan_kepsek .= '<u>'.htmlspecialchars($k['nama_kepsek']).'</u><br>NIP. '.htmlspecialchars($k['nip']).'<br><br>';
+    }
+} else {
+    $tanda_tangan_kepsek = '<i>Kepala Sekolah Belum Ditentukan</i>';
+}
+
+$tglBulan = date("Y-$bulan-01");
+$tglTerakhir = date('t', strtotime($tglBulan));
+$namaBulan = strtoupper(nama_bulan($bulan));
+
+// Base64 encode logo image
+$logo_path = $_SERVER['DOCUMENT_ROOT'] . '/assets/img/image.png';
+$logo_data = '';
+if ($logo_path && file_exists($logo_path)) {
+    $logo_data = base64_encode(file_get_contents($logo_path));
+}
+
+// Set up Dompdf options
+$options = new Options();
+$options->set('isHtml5ParserEnabled', true);
+$options->set('isPhpEnabled', true);
+$options->set('isRemoteEnabled', true);
+$options->set('defaultFont', 'Times');
+$options->set('dpi', 96);
+$dompdf = new Dompdf($options);
+
+// HTML content
+$html = '
 <style>
-    body { font-family: DejaVu Sans, sans-serif; font-size: 10pt; }
+    body { font-family: "Times New Roman", serif; font-size: 11px; margin: 10px; }
     .header { text-align: center; }
     .header h3 { margin: 0; font-size: 14pt; }
-    .header p { margin: 0; font-size: 10pt; }
-    .info td { padding: 3px 5px; vertical-align: top; }
-    .absensi { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    .absensi th, .absensi td { border: 1px solid #000; text-align: center; padding: 3px; }
-    .absensi th { font-weight: bold; }
-    .nowrap { white-space: nowrap; }
-    .th-h { background-color: #C6EFCE; }
-    .th-s { background-color: #FFE699; }
-    .th-i { background-color: #BDD7EE; }
-    .th-a { background-color: #F4B084; }
-    .th-hari { background-color: #D9E1F2; }
+    .header p { margin: 0; font-size: 9pt; }
+    .info td { padding: 2px 4px; vertical-align: top; font-size: 9pt; }
+    .absensi {
+        border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 9pt;
+    }
+    .absensi th, .absensi td {
+        border: 1px solid #000; text-align: center; padding: 2px;
+    }
+    .absensi th { background-color: #f2f2f2; font-weight: bold; }
 </style>
 
 <div class="header">
-    <table width="100%">
+    <table style="width:100%; border-bottom: 3px solid black; margin-bottom: 10px;">
         <tr>
-            <td width="80">
-                <?php if($logoBase64): ?>
-                    <img src="<?= $logoBase64 ?>" height="60" alt="Logo Jatim">
-                <?php else: ?>
-                    <strong>LOGO</strong>
-                <?php endif; ?>
+            <td style="width:80px;">
+                <img src="data:image/png;base64,'.$logo_data.'" style="width: 60px;">
             </td>
             <td style="text-align:center;">
-                <h3>PEMERINTAH PROVINSI JAWA TIMUR<br>SMK NEGERI 10 MALANG</h3>
-                <p>Jalan Raya Tlogowaru, Kedungkandang, Malang, Jawa Timur 65133<br>
-                Telp. (0341) 754086 E-mail: <a href="mailto:smkn10_malang@yahoo.co.id" style="color: blue;">smkn10_malang@yahoo.co.id</a></p>
+                <p>PEMERINTAH PROVINSI JAWA TIMUR</p>
+                <p>DINAS PENDIDIKAN</p>
+                <h2>SMK NEGERI 10 MALANG</h2>
+                <p>Jalan Raya Tlogowaru, Kedungkandang, Malang, Jawa Timur 65133</p>
+                <p>Telp. (0341) 754086 E-mail: <a href="mailto:smkn10_malang@yahoo.co.id">smkn10_malang@yahoo.co.id</a></p>
             </td>
         </tr>
     </table>
-    <hr>
 </div>
-
+<h4 style="text-align:center;">REKAP ABSENSI BULAN '.$namaBulan.'</h4>
 <table class="info">
-    <tr><td><b>Kelas</b></td><td>: <?= htmlspecialchars($d['nama_kelas']) ?></td></tr>
-    <tr><td><b>Semester</b></td><td>: <?= htmlspecialchars($d['semester']) ?></td></tr>
-    <tr><td><b>Tahun Ajaran</b></td><td>: <?= htmlspecialchars($d['tahun_ajaran']) ?></td></tr>
-    <tr><td><b>Guru Mapel</b></td><td>: <?= htmlspecialchars($d['nama_guru']) ?></td></tr>
-    <tr><td><b>Mapel</b></td><td>: <?= htmlspecialchars($d['mapel']) ?></td></tr>
-    <tr><td><b>Wali Kelas</b></td><td>: <?= htmlspecialchars($walas['nama_guru'] ?? '-') ?></td></tr>
+    <tr><td><b>Kelas</b></td><td>: '.$d['nama_kelas'].'</td></tr>
+    <tr><td><b>Semester</b></td><td>: '.$d['semester'].'</td></tr>
+    <tr><td><b>Tahun Ajaran</b></td><td>: '.$d['tahun_ajaran'].'</td></tr>
+    <tr><td><b>Wali Kelas</b></td><td>: '.$walas['nama_guru'].'</td></tr>
 </table>
-
-<br><br>
-<h4 style="text-align:center;">REKAP ABSENSI BULAN <?= strtoupper(date('F', strtotime($tglBulan))) ?> <?= $tahun ?></h4>
 
 <table class="absensi">
     <thead>
         <tr>
-            <th class="nowrap">NO</th>
-            <th class="nowrap">NIS</th>
+            <th>NO</th>
+            <th>NIS</th>
             <th>NAMA</th>
-            <th class="nowrap">L/P</th>
-            <?php for ($i = 1; $i <= $tglTerakhir; $i++): ?>
-                <th class="th-hari"><?= $i ?></th>
-            <?php endfor; ?>
-            <th class="th-h">H</th>
-            <th class="th-s">S</th>
-            <th class="th-i">I</th>
-            <th class="th-a">A</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $no = 1;
-        $qrySiswa = mysqli_query($con, "SELECT * FROM tb_siswa WHERE id_mkelas = $kelas ORDER BY nama_siswa ASC");
-        while ($s = mysqli_fetch_assoc($qrySiswa)):
-        ?>
-        <tr>
-            <td><?= $no++ ?></td>
-            <td><?= htmlspecialchars($s['nis']) ?></td>
-            <td style="text-align:left;"><?= htmlspecialchars($s['nama_siswa']) ?></td>
-            <td><?= htmlspecialchars($s['jk']) ?></td>
-            <?php
-            for ($i = 1; $i <= $tglTerakhir; $i++) {
-                $tgl = "$tahun-$bulan-" . str_pad($i, 2, '0', STR_PAD_LEFT);
-                $absenQ = mysqli_query($con, "SELECT ket FROM _logabsensi WHERE id_siswa='{$s['id_siswa']}' AND id_mengajar='$pelajaran' AND tgl_absen='$tgl' LIMIT 1");
-                $absen = mysqli_fetch_assoc($absenQ);
-                echo '<td>' . ($absen['ket'] ?? '') . '</td>';
-            }
-            foreach (['H','S','I','A'] as $kode) {
-                $jmlQ = mysqli_query($con, "SELECT COUNT(*) AS jml FROM _logabsensi WHERE id_siswa='{$s['id_siswa']}' AND id_mengajar='$pelajaran' AND YEAR(tgl_absen)='$tahun' AND MONTH(tgl_absen)='$bulan' AND ket='$kode'");
-                $jml = mysqli_fetch_assoc($jmlQ);
-                echo '<td>' . ($jml['jml'] ?? 0) . '</td>';
-            }
-            ?>
-        </tr>
-        <?php endwhile; ?>
-    </tbody>
-</table>
+            <th>L/P</th>';
+for ($i = 1; $i <= $tglTerakhir; $i++) {
+    $html .= '<th>'.$i.'</th>';
+}
+$html .= '<th>H</th><th>S</th><th>I</th><th>A</th></tr></thead><tbody>';
 
-<table style="width:100%; margin-top:60px;">
-<tr>
-    <td style="width:50%; text-align:left;">
-        <p>Kepala Sekolah</p><br><br><br><br>
-        <p><u><?= htmlspecialchars($nama_kepsek) ?></u><br>NIP. <?= htmlspecialchars($nip_kepsek) ?></p>
-    </td>
-    <td style="width:50%; text-align:right;">
-        <p>Malang, <?= tgl_indo(date('Y-m-d')) ?></p>
-        <p>Guru Pengampu</p><br><br><br><br>
-        <p><u><?= htmlspecialchars($d['nama_guru']) ?></u><br>NIP. <?= htmlspecialchars($d['nip_guru']) ?></p>
-    </td>
-</tr>
-</table>
-<?php
-$html = ob_get_clean();
+$no = 1;
+$qrySiswa = mysqli_query($con, "SELECT * FROM tb_siswa WHERE id_mkelas='$kelas' ORDER BY nama_siswa ASC");
+while ($s = mysqli_fetch_array($qrySiswa)) {
+    $html .= '<tr>
+        <td>'.$no++.'</td>
+        <td>'.$s['nis'].'</td>
+        <td style="text-align:left;">'.$s['nama_siswa'].'</td>
+        <td>'.$s['jk'].'</td>';
+    for ($i = 1; $i <= $tglTerakhir; $i++) {
+        $ket = mysqli_fetch_array(mysqli_query($con, "SELECT ket FROM _logabsensi 
+            WHERE id_siswa='{$s['id_siswa']}' AND id_mengajar='$pelajaran' 
+            AND MONTH(tgl_absen)='$bulan' AND DAY(tgl_absen)='$i' LIMIT 1"));
+        $nilai = !empty($ket['ket']) ? $ket['ket'] : '-';
+        $html .= '<td>'.$nilai.'</td>';
+    }
+    foreach (['H', 'S', 'I', 'A'] as $status) {
+        $count = mysqli_fetch_array(mysqli_query($con, "SELECT COUNT(*) as jml FROM _logabsensi 
+            WHERE id_siswa='{$s['id_siswa']}' AND id_mengajar='$pelajaran' 
+            AND MONTH(tgl_absen)='$bulan' AND ket='$status'"));
+        $html .= '<td>'.$count['jml'].'</td>';
+    }
+    $html .= '</tr>';
+}
+$html .= '</tbody></table>
 
-// Konfigurasi DomPDF
-$options = new Options();
-$options->set('isRemoteEnabled', true);
-$options->set('defaultFont', 'DejaVu Sans');
+<br><br>
+<table style="width:100%; margin-top:40px;">
+    <tr>
+        <td style="width:50%; text-align:left;">
+            <p>Kepala Sekolah</p><br><br><br><br>
+            '.$tanda_tangan_kepsek.'
+        </td>
+        <td style="width:50%; text-align:right;">
+            <p>Malang, '.tgl_indo(date('Y-m-d')).'</p>
+            <p>Wali Kelas</p><br><br><br><br>
+            <u>'.htmlspecialchars($walas['nama_guru']).'</u><br>
+            NIP. '.htmlspecialchars($walas['nip']).'
+        </td>
+    </tr>
+</table>';
 
-$dompdf = new Dompdf($options);
+$filename = "Rekap_Absensi_Kelas_{$d['nama_kelas']}_Bulan_{$namaBulan}.pdf";
+
 $dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'landscape');
+$dompdf->setPaper(array(0, 0, 612, 1008), 'landscape'); // ✅ Legal/Folio size
 $dompdf->render();
 
-if (ob_get_length()) ob_end_clean();
-
-// Output PDF
-$dompdf->stream("Rekap_Absensi_{$d['nama_kelas']}_{$bulanParam}.pdf", ["Attachment" => false]);
+ob_end_clean(); // ✅ Bersihkan buffer
+$dompdf->stream($filename, array('Attachment' => 0));
 exit;
+?>

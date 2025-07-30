@@ -115,7 +115,7 @@ function validateForm() {
 
                         <div class="form-group">
                             <label>Jam Ke</label>
-                            <input name="jamke" type="text" class="form-control" id="jamke" placeholder="Contoh: 1">
+                            <input name="jamke" type="text" class="form-control" id="jamke" placeholder="Contoh: 1 - 2">
                         </div>
 
                         <div class="form-group">

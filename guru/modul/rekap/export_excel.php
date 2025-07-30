@@ -8,8 +8,7 @@ require_once $autoloadPath;
 if (!class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
     die("Class Spreadsheet tidak ditemukan setelah include autoload!");
 }
-
-include "../../../config/db.php";
+include '../../../config/db.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -49,7 +48,7 @@ $spreadsheet->getDefaultStyle()->getFont()->setName('Times New Roman')->setSize(
 
 // Logo
 $drawing = new Drawing();
-$drawing->setPath('../..//assets/img/jatim.png');
+$drawing->setPath('../../assets/img/jatim.png');
 $drawing->setHeight(105);
 $drawing->setCoordinates('A1');
 $drawing->setOffsetX(20);

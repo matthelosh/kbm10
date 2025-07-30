@@ -63,7 +63,7 @@
                                         <li class="list-group-item">
                                             <a class="btn btn-primary btn-block text-left" href="?page=absen&pelajaran=<?=$dm['id_mengajar']?>">
                                                 <i class="fas fa-chevron-circle-right"></i>
-                                                <span class="sub-item"><?= strtoupper($dm['mapel']); ?> (<?= strtoupper($dm['nama_kelas']); ?>)</span>
+                                                <span class="sub-item">MAPEL: <?= strtoupper(isset($dm['nama_mapel']) ? $dm['nama_mapel'] : 'Mapel'); ?> (KELAS: <?= strtoupper($dm['nama_kelas']); ?>)</span>
                                             </a>
                                         </li>
                                     <?php } ?>
@@ -79,7 +79,7 @@
                                         <li class="list-group-item">
                                             <a class="btn btn-secondary btn-block text-left" href="?page=rekap&pelajaran=<?=$dm['id_mengajar']?>">
                                                 <i class="fas fa-chevron-circle-right"></i>
-                                                <span class="sub-item"><?= strtoupper($dm['mapel']); ?> (<?= strtoupper($dm['nama_kelas']); ?>)</span>
+                                                <span class="sub-item">MAPEL: <?= strtoupper($dm['nama_mapel']); ?> (KELAS: <?= strtoupper($dm['nama_kelas']); ?>)</span>
                                             </a>
                                         </li>
                                     <?php } ?>

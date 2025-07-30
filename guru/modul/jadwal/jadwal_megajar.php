@@ -1,6 +1,6 @@
 <?php
 if (!isset($_SESSION)) session_start();
-require_once __DIR__ . '/../../../config/db.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config/db.php';
 
 if (!isset($_SESSION['guru'])) {
     echo "<script>alert('Maaf! Anda belum login!');window.location='../../user.php';</script>";
@@ -52,8 +52,48 @@ $jadwal = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     <div class="row">
         <?php if (!empty($jadwal)): ?>
-            <?php foreach ($jadwal as $jd): ?>
-                <div class="col-md-6 col-xs-12">
+            <div class="col-12">
+                <div class="table table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Hari</th>
+                                <th>Jam Ke</th>
+                                <th>Waktu</th>
+                                <th>Mata Pelajaran</th>
+                                <th>Kelas</th>
+                                <th>Ruang</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($jadwal as $jd): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($jd['hari']) ?></td>
+                                    <td><?= htmlspecialchars($jd['jamke']) ?></td>
+                                    <td><?= htmlspecialchars($jd['jam_mengajar']) ?></td>
+                                    <td><?= htmlspecialchars($jd['mapel']) ?></td>
+                                    <td><?= htmlspecialchars($jd['nama_kelas']) ?></td>
+                                    <td><?= htmlspecialchars($jd['ruang']) ?></td>
+                                    <td>
+                                        <a href="index.php?page=absen&pelajaran=<?= urlencode($jd['id_mengajar']) ?>" class="btn btn-default btn-sm">
+                                            <i class="fas fa-clipboard-check"></i> Isi Absen
+                                        </a>
+                                        <a href="index.php?page=rekap&id_mengajar=<?= urlencode($jd['id_mengajar']) ?>&jenis=hari" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-list-alt"></i> Rekap Absen
+                                        </a>
+                                        <a href="index.php?act=hapus&id_mengajar=<?= urlencode($jd['id_mengajar']) ?>" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash-alt"></i> Hapus Jadwal
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php //foreach ($jadwal as $jd): ?>
+                <!-- <div class="col-md-6 col-xs-12">
                     <div class="alert alert-info alert-dismissible" role="alert">
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>
                         <strong><h3><?= htmlspecialchars($jd['mapel']); ?></h3></strong>
@@ -74,8 +114,8 @@ $jadwal = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             <i class="fas fa-list-alt"></i> Rekap Absen
                         </a>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                </div> -->
+            <?php //endforeach; ?>
         <?php else: ?>
             <div class="col-12">
                 <div class="alert alert-warning">Tidak ada jadwal mengajar ditemukan.</div>

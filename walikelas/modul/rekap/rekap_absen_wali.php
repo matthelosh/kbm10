@@ -85,10 +85,10 @@ $paramLink = "jenis=$jenis";
     </div>
 
     <div class="row mb-4 text-center">
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
             <a href="?page=rekap&jenis=hari&kelas=<?= $id_mkelas ?>" class="btn btn-outline-warning btn-lg btn-block shadow-sm">
                 <i class="fas fa-calendar-day"></i> Rekap Per Hari
-            </a>
+            </a> -->
         </div>
         <div class="col-md-4">
             <a href="?page=rekap&jenis=bulan&kelas=<?= $id_mkelas ?>" class="btn btn-outline-primary btn-lg btn-block shadow-sm">
@@ -105,36 +105,28 @@ $paramLink = "jenis=$jenis";
     <div class="row">
         <div class="col-md-12">
             <?php 
-            if ($jenis == 'hari') {
-                include 'rekap_harian.php';
-            } elseif ($jenis == 'bulan') {
+            if ($jenis == 'bulan') {
                 include 'rekap_bulanan.php';
             } elseif ($jenis == 'semester') {
                 include 'rekap_semester.php';
-            }
+            } 
             ?>
 
             <div class="text-center mt-4">
-                <a href="javascript:history.back()" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
+                 <a href="javascript:history.back()" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
 
                 <?php if ($jenis == 'hari') { ?>
-                    <a href="modul/rekap/export_excel.php?id_mengajar=<?= $id_mengajar ?>&tanggal=<?= $tanggal ?>" class="btn btn-success ml-2">
-                        <i class="fas fa-file-excel"></i> Export Excel
-                    </a>
-                    <a href="modul/rekap/export_pdf_harian.php?id_mengajar=<?= $id_mengajar ?>&tanggal=<?= $tanggal ?>" target="_blank" class="btn btn-danger ml-2">
+                    
+                    <!-- <a href="modul/rekap/export_pdf_harian.php?id_mengajar=<?= $id_mengajar ?>&tanggal=<?= $tanggal ?>" target="_blank" class="btn btn-danger ml-2">
                         <i class="fas fa-file-pdf"></i> Download PDF
-                    </a>
+                    </a> -->
                 <?php } elseif ($jenis == 'bulan') { ?>
-                    <a href="modul/rekap/export_excel_bulanan.php?pelajaran=<?= $id_mengajar ?>&kelas=<?= $id_mkelas ?>&bulan=<?= $bulanIni ?>" class="btn btn-success ml-2">
-                        <i class="fas fa-file-excel"></i> Export Excel
-                    </a>
+                    
                     <a href="modul/rekap/download_pdf.php?pelajaran=<?= $id_mengajar ?>&kelas=<?= $id_mkelas ?>&bulan=<?= $bulanIni ?>" target="_blank" class="btn btn-danger ml-2">
                         <i class="fas fa-file-pdf"></i> Download PDF
                     </a>
                 <?php } elseif ($jenis == 'semester') { ?>
-                    <a href="modul/rekap/export_excel_semester.php?pelajaran=<?= $id_mengajar ?>&kelas=<?= $id_mkelas ?>&semester_id=<?= $semester_id ?>" class="btn btn-success ml-2">
-                        <i class="fas fa-file-excel"></i> Export Excel
-                    </a>
+                    
                     <a href="modul/rekap/download_pdf_semester.php?id_mengajar=<?= $id_mengajar ?>&id_mkelas=<?= $id_mkelas ?>&semester_id=<?= $semester_id ?>" target="_blank" class="btn btn-danger ml-2">
                         <i class="fas fa-file-pdf"></i> Download PDF
                     </a>

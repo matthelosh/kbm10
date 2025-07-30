@@ -1,7 +1,7 @@
 <?php
 ob_start();
-require_once __DIR__ . '/../../../vendor/autoload.php';
-include '../../../config/db.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/config/db.php';
 
 //require_once $_SERVER['DOCUMENT_ROOT'] . '/kbm/config/db.php';
 //require_once $_SERVER['DOCUMENT_ROOT'] . '../../../vendor/autoload.php';
@@ -69,18 +69,28 @@ ORDER BY jm.tanggal DESC, jm.jam_ke ASC
 ";
 
 $result = $con->query($query);
+$all_rows = [];
+while ($row = $result->fetch_assoc()) {
+    array_push($all_rows, $row);
+}
 if (!$result || $result->num_rows == 0) {
     echo "<script>alert('Tidak ada data jurnal untuk periode/kriteria yang dipilih'); window.history.back();</script>";
     exit;
 }
 
 // Data guru
-$row1 = $result->fetch_assoc();
+$row1 = $all_rows[0];
 $nama_guru = $row1['nama_guru'];
 $nip_guru = $row1['nip'];
-$mapel = $row1['mapel'];
+// $mapel = $row1['mapel'];
 $result->data_seek(0);
 
+// Mapels
+$mapels = [];
+foreach ($all_rows as $row_mapels) {
+    array_push($mapels, $row_mapels['mapel']);
+}
+$mapels = array_unique($mapels);
 // Periode
 $periode_awal = $tgl_awal ?: $row1['tanggal'];
 $periode_akhir = $tgl_akhir ?: $row1['tanggal'];
@@ -136,7 +146,7 @@ $html .= '</td>
 
 <p>
     <strong>Nama Guru:</strong> '.htmlspecialchars($nama_guru).'<br>
-    <strong>Mata Pelajaran:</strong> '.htmlspecialchars($mapel).'<br>
+    <strong>Mata Pelajaran:</strong> '.htmlspecialchars(join(', ', $mapels)).'<br>
     <strong>Periode:</strong> '.tanggalIndo($periode_awal).' s.d. '.tanggalIndo($periode_akhir).'
 </p>
 
@@ -154,15 +164,15 @@ $html .= '</td>
     </thead>
     <tbody>';
 $no = 1;
-while ($row = $result->fetch_assoc()) {
+foreach ($all_rows as $row) {
     $html .= '<tr>
         <td>'.$no++.'</td>
         <td>'.date('d/m/Y', strtotime($row['tanggal'])).'</td>
         <td>'.htmlspecialchars($row['jam_ke']).'</td>
         <td>'.htmlspecialchars($row['nama_kelas']).'</td>
-        <td>'.htmlspecialchars($row['mapel']).'</td>
-        <td>'.htmlspecialchars($row['uraian_kegiatan']).'</td>
-        <td>'.htmlspecialchars($row['catatan_perkembangan']).'</td>
+        <td style="text-align:left">'.htmlspecialchars($row['mapel']).'</td>
+        <td style="text-align:left">'.htmlspecialchars($row['uraian_kegiatan']).'</td>
+        <td style="text-align:left">'.htmlspecialchars($row['catatan_perkembangan']).'</td>
     </tr>';
 }
 $html .= '</tbody></table>

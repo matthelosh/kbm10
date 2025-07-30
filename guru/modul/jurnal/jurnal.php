@@ -1,5 +1,6 @@
 <?php
-include 'koneksi.php';
+// include 'koneksi.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config/db.php';
 
 $query = "SELECT * FROM jurnal_mengajar ORDER BY tanggal DESC";
 $result = mysqli_query($conn, $query);

@@ -85,13 +85,11 @@ include 'config/db.php';
 
                     if ($level == '1') {
                         // Guru login: NIP = Username & Password
-                        // $sql = mysqli_query($con, "SELECT * FROM tb_guru WHERE nip='$username' AND nip='$password' AND status='Y'");
-                        $stmt = $con->prepare("SELECT * FROM tb_guru WHERE nip=?  AND status='Y'");
-                        $stmt->bind_param("s", $username);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        if ($d = $result->fetch_assoc()) {
+                        $sql = mysqli_query($con, "SELECT * FROM tb_guru WHERE nip='$username' AND status='Y'");
+                        if (mysqli_num_rows($sql) == 1) {
+                            $d = mysqli_fetch_assoc($sql);
                             if (password_verify($password, $d['password'])) {
+                                
                                 $_SESSION['guru'] = $d['id_guru'];
                                 $_SESSION['username'] = $d['nip'];
                                 echo "
@@ -110,7 +108,7 @@ include 'config/db.php';
                                 echo "
                                 <script type='text/javascript'>
                                 setTimeout(function () {
-                                    swal('Sorry!', 'Username / Password Salah', {
+                                    swal('Sorry!', 'Password Salah', {
                                         icon : 'error',
                                         buttons: { confirm: { className : 'btn btn-danger' } },
                                     });
@@ -133,18 +131,7 @@ include 'config/db.php';
                         $sql = mysqli_query($con, "SELECT g.*, w.id_walikelas FROM tb_guru g JOIN tb_walikelas w ON g.id_guru = w.id_guru WHERE g.nip='$username' AND g.status='Y'");
                         if (mysqli_num_rows($sql) == 1) {
                             $d = mysqli_fetch_assoc($sql);
-                            if (!password_verify($password, $d['password'])) {
-                                echo "
-                                <script type='text/javascript'>
-                                setTimeout(function () {
-                                    swal('Sorry!', 'Username / Password Salah', {
-                                        icon : 'error',
-                                        buttons: { confirm: { className : 'btn btn-danger' } },
-                                    });
-                                }, 10);
-                                </script>";
-                                exit;
-                            }
+                            if (password_verify($password, $d['password'])) {
                             $_SESSION['walikelas'] = $d['id_walikelas'];
                             $_SESSION['guru'] = $d['id_guru'];
                             $_SESSION['username'] = $d['nip'];
@@ -160,6 +147,17 @@ include 'config/db.php';
                                 window.location.replace('./walikelas/');
                             }, 3000);
                             </script>";
+                            } else {
+                                echo "
+                                <script type='text/javascript'>
+                                setTimeout(function () {
+                                    swal('Sorry!', 'Password Salah', {
+                                        icon : 'error',
+                                        buttons: { confirm: { className : 'btn btn-danger' } },
+                                    });
+                                }, 10);
+                                </script>";
+                            }
                         } else {
                             echo "
                             <script type='text/javascript'>
@@ -173,9 +171,10 @@ include 'config/db.php';
                         }
                     } elseif ($level == '2') {
                         // Siswa login: NIS = Username & Password
-                        $sql = mysqli_query($con, "SELECT * FROM tb_siswa WHERE nis='$username' AND nis='$password' AND status='1'");
+                        $sql = mysqli_query($con, "SELECT * FROM tb_siswa WHERE nis='$username' AND status='1'");
                         if (mysqli_num_rows($sql) > 0) {
                             $d = mysqli_fetch_assoc($sql);
+                            if (password_verify($password, $d['password'])) {
                             $_SESSION['siswa'] = $d['id_siswa'];
                             $_SESSION['username'] = $d['nis'];
                             echo "
@@ -190,6 +189,17 @@ include 'config/db.php';
                                 window.location.replace('./siswa/');
                             }, 3000);
                             </script>";
+                            } else {
+                                echo "
+                                <script type='text/javascript'>
+                                setTimeout(function () {
+                                    swal('Sorry!', 'Password Salah', {
+                                        icon : 'error',
+                                        buttons: { confirm: { className : 'btn btn-danger' } },
+                                    });
+                                }, 10);
+                                </script>";
+                            }
                         } else {
                             echo "
                             <script type='text/javascript'>

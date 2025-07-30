@@ -1,5 +1,6 @@
 <?php
-include 'koneksi.php';
+// include 'koneksi.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Cek login guru
@@ -23,7 +24,7 @@ $query = "SELECT m.*, k.nama_kelas, mp.mapel
           JOIN tb_thajaran t ON m.id_thajaran = t.id_thajaran
           WHERE m.id_mengajar = '$id_mengajar' AND m.id_guru = '$id_guru' AND t.status = 1";
 
-$result = mysqli_query($conn, $query);
+$result = mysqli_query($con, $query);
 $data = mysqli_fetch_assoc($result);
 
 if (!$data) {
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql = "INSERT INTO jurnal_mengajar (tanggal, jam_ke, kelas, mapel, uraian_kegiatan, catatan_perkembangan, id_kelas, id_guru)
             VALUES ('$tanggal', '$jam_ke', '$kelas', '$mapel', '$uraian', '$catatan', '$id_kelas', '$id_guru')";
 
-    if (mysqli_query($conn, $sql)) {
+    if (mysqli_query($con, $sql)) {
         header("Location: ../../index.php?page=rekap_jurnal&pesan=sukses");
         exit;
     } else {
